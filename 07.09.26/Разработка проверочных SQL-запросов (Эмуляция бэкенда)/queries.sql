@@ -1,76 +1,59 @@
 -- ============================================================================
--- queries.sql
--- Набор бизнес-запросов для проверки функционала приложения
--- СУБД: PostgreSQL (3NF на UUID)
+-- ЗАПРОС 1: Список партнеров с общим количеством сделанных доставок
 -- ============================================================================
-
--- ----------------------------------------------------------------------------
--- ЗАПРОС 1: Вывод списка партнеров с общим количеством их доставок
--- ----------------------------------------------------------------------------
--- Использует LEFT JOIN, чтобы в списке отображались даже те партнеры, 
--- у которых еще не было ни одной отгрузки (для них выведется 0).
+-- Использует LEFT JOIN, чтобы в списке остались партнеры, у которых еще нет продаж.
+-- Группировка (GROUP BY) собирает данные, а COUNT считает только реальные доставки.
 SELECT 
-    p.partner_id AS "ID Партнера",
-    p.company_name AS "Название организации",
-    p.inn AS "ИНН",
-    COUNT(s.shipment_id) AS "Всего доставок"
-FROM public.partners p
-LEFT JOIN public.shipments s ON p.partner_id = s.partner_id
-GROUP BY p.partner_id, p.company_name, p.inn
-ORDER BY p.company_name ASC; -- Сортировка по названию от А до Я
+    partners.partner_id,
+    partners.company_name,
+    COUNT(sales.sale_id) AS total_shipments
+FROM public.partners
+LEFT JOIN public.sales ON partners.partner_id = sales.partner_id
+GROUP BY partners.partner_id, partners.company_name
+ORDER BY partners.company_name ASC;
 
 
--- ----------------------------------------------------------------------------
--- ЗАПРОС 2: Демонстрация транзакции (Регистрация партнера + первая доставка)
--- ----------------------------------------------------------------------------
--- Блок транзакции гарантирует: если на каком-то этапе произойдет сбой,
--- база данных автоматически откатит изменения, предотвращая появление "битых" строк.
+-- ============================================================================
+-- ЗАПРОС 2: Демонстрация транзакции (Добавление партнера и его первой доставки)
+-- ============================================================================
+-- Так как в бд для id стоит GENERATED ALWAYS, мы не пишем partner_id и sale_id руками.
+-- Вместо этого мы используем RETURNING, чтобы динамически перебросить новый ID в продажи.
 BEGIN;
 
--- Шаг А: Объявляем новые UUID переменные для транзакции
--- (В реальном приложении эти UUID сгенерирует ваш бэкенд на Node.js/Python)
-DO $$
-DECLARE
-    new_partner_id  UUID := '00000000-0000-0000-0000-000000000005';
-    new_shipment_id UUID := '00000000-0000-0000-0000-000000010106';
-    existing_prod_id UUID := '00000000-0000-0000-0000-000000000101'; -- Стиральный порошок "Альфа"
-BEGIN
+-- Шаг 1: Создаем нового партнера и забираем его сгенерированный ID в переменную
+WITH new_partner AS (
+    INSERT INTO public.partners (company_name, contact_email, phone, rating, inn)
+    VALUES ('ТК "Новые Горизонты"', 'contact@newhorizons.ru', '+7 (999) 000-11-22', 5.0, 7702999888)
+    RETURNING partner_id
+)
+-- Шаг 2: Записываем первую тестовую доставку (мыло жидкое "Стандарт", id = 2)
+INSERT INTO public.sales (partner_id, product_id, sale_date, quantity, total_amount)
+SELECT 
+    new_partner.partner_id, 
+    2,                -- product_id (Мыло жидкое "Стандарт")
+    '2026-09-11',     -- Текущая дата отгрузки
+    10,               -- Количество в штуках
+    900.00            -- Итоговая сумма (10 шт * 90 руб)
+FROM new_partner;
 
-    -- Шаг Б: Вставляем нового партнера
-    INSERT INTO public.partners (partner_id, company_name, inn, contact_email, contact_phone, is_active)
-    VALUES (new_partner_id, 'ООО "Новый Вектор"', '7702999888', 'contact@newvector.ru', '+7 (495) 777-88-99', true);
-
-    -- Шаг В: В этой же транзакции создаем для него первую накладную (доставку)
-    INSERT INTO public.shipments (shipment_id, partner_id, shipment_date, status)
-    VALUES (new_shipment_id, new_partner_id, '2026-09-10 12:00:00', 'Новый');
-
-    -- Шаг Г: Добавляем товар в созданную накладную
-    INSERT INTO public.shipment_items (shipment_id, product_id, quantity, price_at_shipment)
-    VALUES (new_shipment_id, existing_prod_id, 10, 500.00);
-
-END $$;
-
--- Закрепляем изменения в базе данных
 COMMIT;
 
 
--- ----------------------------------------------------------------------------
--- ЗАПРОС 3: Вывод детальной истории отгрузок партнера за указанный период
--- ----------------------------------------------------------------------------
--- Запрос собирает данные из 3NF-таблиц, считает стоимость каждой позиции,
--- и фильтрует результат по конкретному контрагенту и временному окну.
+-- ============================================================================
+-- ЗАПРОС 3: История реализации партнера за указанный период
+-- ============================================================================
+-- Выводит детальную информацию по отгрузкам конкретного партнера (например, id = 1)
+-- за заданный промежуток времени с названиями продуктов.
 SELECT 
-    s.shipment_id AS "ID Документа",
-    to_char(s.shipment_date, 'DD.MM.YYYY HH24:MI') AS "Дата отгрузки",
-    s.status AS "Статус доставки",
-    prod.product_name AS "Наименование товара",
-    prod.sku AS "Артикул",
-    si.quantity AS "Объем (шт.)",
-    si.price_at_shipment AS "Цена за единицу",
-    (si.quantity * si.price_at_shipment) AS "Итоговая сумма строки"
-FROM public.shipments s
-JOIN public.shipment_items si ON s.shipment_id = si.shipment_id
-JOIN public.products prod ON si.product_id = prod.product_id
-WHERE s.partner_id = '00000000-0000-0000-0000-000000000001'  -- Фильтр по конкретному ООО "Логистик-Экспресс"
-  AND s.shipment_date BETWEEN '2026-03-01 00:00:00' AND '2026-03-31 23:59:59' -- Фильтр за указанный период (март 2026)
-ORDER BY s.shipment_date DESC;
+    sales.sale_id,
+    partners.company_name,
+    products.name AS product_name,
+    sales.sale_date,
+    sales.quantity,
+    sales.total_amount
+FROM public.sales
+JOIN public.partners ON sales.partner_id = partners.partner_id
+JOIN public.products ON sales.product_id = products.id
+WHERE sales.partner_id = 1 -- ID искомого партнера (можно менять)
+  AND sales.sale_date BETWEEN '2026-03-01' AND '2026-03-21' -- Период дат
+ORDER BY sales.sale_date DESC;
