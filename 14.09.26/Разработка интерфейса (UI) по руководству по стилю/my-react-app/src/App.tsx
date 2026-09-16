@@ -3,19 +3,20 @@ import PartnerCard from './components/PartnerCard'
 
 function App() {
     const partners = [
-        {id: 1, name: "1", discount: 10},
-        {id: 2, name: "2", discount: 20},
-        {id: 3, name: "3", discount: 30}
+        {id: 1, name: "Партнер 1", discount: 10, phone: "8999009900", rating: 1.0},
+        {id: 2, name: "Партнер 2", discount: 20, phone: "8999009900", rating: 1.1},
+        {id: 3, name: "Партнер 3", discount: 30, phone: "8999009900", rating: 1.2}
     ]
     return (
         <>
-          <div>
-            LOGO
-          </div>
-          <div>
-            <div>CRM: Список партнеров и скидок</div>
-            {partners.map(partner => <PartnerCard id={partner.id} name={partner.name} discount={partner.discount}/>)}
-          </div>
+            <div className={"appLogo"}>
+                LOGO
+            </div>
+            <div>
+                <div className={"main-title"}><h1>CRM: Список партнеров и скидок</h1></div>
+                {partners.map(partner => <PartnerCard id={partner.id} name={partner.name} discount={partner.discount}
+                                                      phone={partner.phone} rating={partner.rating}/>)}
+            </div>
         </>
     )
 }
