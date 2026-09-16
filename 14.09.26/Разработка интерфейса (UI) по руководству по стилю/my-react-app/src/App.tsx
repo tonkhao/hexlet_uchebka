@@ -1,5 +1,6 @@
 import './App.css'
 import PartnerCard from './components/PartnerCard'
+import logo from './assets/hero.png'
 
 function App() {
     const partners = [
@@ -9,8 +10,8 @@ function App() {
     ]
     return (
         <>
-            <div className={"appLogo"}>
-                LOGO
+            <div className={"app-logo"}>
+                <img src={logo} alt="Логотип"/>
             </div>
             <div>
                 <div className={"main-title"}><h1>CRM: Список партнеров и скидок</h1></div>
