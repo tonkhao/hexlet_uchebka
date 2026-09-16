@@ -1,3 +1,5 @@
+import './PartnerCard.css'
+
 interface PartnerCardProps {
     id: number
     name: string
@@ -6,13 +8,13 @@ interface PartnerCardProps {
 
 function PartnerCard({name, discount}: PartnerCardProps) {
     return (
-        <div>
-            <div className={"cardLeftPart"}>
-                <div className={"partnerName"}><p>{name}</p></div>
-                <div className={"ceoPhone"}><p>Директор</p>[PHONE_NUMBER_GOESHERE]</div>
-                <div className={"partnerRating"}>Рейтинг: [RATING_GOESHERE]</div>
+        <div className={"partner-card"}>
+            <div className={"card-left-part"}>
+                <div className={"partner-name"}><p>{name}</p></div>
+                <div className={"ceo-phone"}><p>Директор</p>[PHONE_NUMBER_GOESHERE]</div>
+                <div className={"partner-rating"}>Рейтинг: [RATING_GOESHERE]</div>
             </div>
-            <div className={"cardRightPart"}>
+            <div className={"card-right-part"}>
                 <p>{discount}%</p>
             </div>
         </div>
