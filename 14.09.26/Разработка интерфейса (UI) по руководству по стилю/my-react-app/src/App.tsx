@@ -9,7 +9,13 @@ function App() {
     ]
     return (
         <>
+          <div>
+            LOGO
+          </div>
+          <div>
+            <div>CRM: Список партнеров и скидок</div>
             {partners.map(partner => <PartnerCard id={partner.id} name={partner.name} discount={partner.discount}/>)}
+          </div>
         </>
     )
 }

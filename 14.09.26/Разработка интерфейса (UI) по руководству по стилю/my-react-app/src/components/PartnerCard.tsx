@@ -4,12 +4,17 @@ interface PartnerCardProps {
     discount: number
 }
 
-function PartnerCard({ id, name, discount }: PartnerCardProps) {
+function PartnerCard({name, discount}: PartnerCardProps) {
     return (
         <div>
-            <p>{id}</p>
-            <p>{name}</p>
-            <p>{discount}%</p>
+            <div className={"cardLeftPart"}>
+                <div className={"partnerName"}><p>{name}</p></div>
+                <div className={"ceoPhone"}><p>Директор</p>[PHONE_NUMBER_GOESHERE]</div>
+                <div className={"partnerRating"}>Рейтинг: [RATING_GOESHERE]</div>
+            </div>
+            <div className={"cardRightPart"}>
+                <p>{discount}%</p>
+            </div>
         </div>
     )
 }
