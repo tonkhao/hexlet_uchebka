@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import partnerRoutes from './routes/partnerRoutes.js';
+import partnerRoutes from '../routes/partnerRoutes.js';
 
 const app = express();
 

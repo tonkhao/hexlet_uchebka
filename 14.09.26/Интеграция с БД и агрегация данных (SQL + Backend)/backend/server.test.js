@@ -1,4 +1,4 @@
-import { calculatePartnerDiscount } from './server.js';
+import { calculatePartnerDiscount } from './services/parnerService.js';
 
 describe('Тестирование функции calculatePartnerDiscount', () => {
 

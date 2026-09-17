@@ -1,5 +1,5 @@
 import express from 'express';
-import { getPartnerWithDiscount } from '../services/partnerService.js';
+import { getPartnerWithDiscount } from '../services/parnerService.js';
 
 const router = express.Router();
 
