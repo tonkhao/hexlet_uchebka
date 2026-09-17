@@ -14,16 +14,15 @@ export function calculatePartnerDiscount(totalQuantity) {
 }
 
 export async function getPartnerWithDiscount(partnerId) {
+    // Выбираем только partner_id и сумму, чтобы не зависеть от полей name/email
     const query = `
     SELECT 
-      p.id, 
-      p.name, 
-      p.email, 
+      p.partner_id, 
       COALESCE(SUM(s.quantity), 0) AS "totalQuantity"
     FROM partners p
-    LEFT JOIN sales_history s ON p.id = s.partner_id
-    WHERE p.id = $1
-    GROUP BY p.id, p.name, p.email;
+    LEFT JOIN sales s ON p.partner_id = s.partner_id
+    WHERE p.partner_id = $1
+    GROUP BY p.partner_id;
   `;
 
     const result = await pool.query(query, [partnerId]);
@@ -32,6 +31,7 @@ export async function getPartnerWithDiscount(partnerId) {
         return null;
     }
 
+    // Получаем строку из результатов (индекс 0)
     const partnerData = result.rows[0];
 
     const totalVolume = Number(partnerData.totalQuantity);
@@ -42,3 +42,6 @@ export async function getPartnerWithDiscount(partnerId) {
 
     return partnerData;
 }
+
+
+
