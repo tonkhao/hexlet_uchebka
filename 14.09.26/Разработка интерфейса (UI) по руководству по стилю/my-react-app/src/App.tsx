@@ -1,6 +1,6 @@
 import './App.css'
 import PartnerCard from './components/PartnerCard'
-import logo from './assets/hero.png'
+import logo from './assets/fakeLogo.png'
 
 function App() {
     const partners = [
