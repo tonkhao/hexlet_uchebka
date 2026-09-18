@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import PartnerCard from './components/PartnerCard'
-import logo from './assets/hero.png'
+import logo from './assets/fakeLogo.png'
 
 interface Partner {
     id: number
