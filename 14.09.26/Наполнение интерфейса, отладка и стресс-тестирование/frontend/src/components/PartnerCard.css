@@ -1,0 +1,44 @@
+.partner-card {
+    display: flex;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.card-left-part {
+    flex: 1;
+    padding: 16px;
+}
+
+.partner-name p {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px;
+}
+
+.ceo-phone {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.partner-rating {
+    font-size: 14px;
+    color: #888;
+}
+
+.card-right-part {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 24px;
+    background-color: #f5f5f5;
+}
+
+.card-right-part p {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    color: #2ecc71;
+}
