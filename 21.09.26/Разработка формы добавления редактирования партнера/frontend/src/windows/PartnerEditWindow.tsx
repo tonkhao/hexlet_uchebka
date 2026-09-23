@@ -64,7 +64,7 @@ function PartnerEditWindow({ initialPartner, onSave, onBack }: PartnerEditWindow
                 <img src={logo} alt="Логотип"/>
             </div>
             <div className="main-title">
-                <h1>{isEditing ? 'CRM: Карточка партнера [Редактирование]' : 'CRM: Карточка партнера [Добавление]'}</h1>
+                <h1>{isEditing ? 'CRM: Карточка партнера' : 'CRM: Добавить партнера'}</h1>
             </div>
             <form className="partner-form" onSubmit={handleSubmit}>
                 <label className="form-field">
