@@ -4,6 +4,12 @@
     border-radius: 8px;
     overflow: hidden;
     margin-bottom: 20px;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease;
+}
+
+.partner-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .card-left-part {

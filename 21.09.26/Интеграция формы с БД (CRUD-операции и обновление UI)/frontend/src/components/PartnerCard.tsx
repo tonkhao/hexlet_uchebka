@@ -7,8 +7,9 @@ interface PartnerCardProps {
 }
 
 function PartnerCard({ partner, onEdit }: PartnerCardProps) {
+    // Клик или двойной клик по карточке открывает редактирование партнера
     return (
-        <div className="partner-card">
+        <div className="partner-card" onClick={() => onEdit(partner)} onDoubleClick={() => onEdit(partner)}>
             <div className="card-left-part">
                 <div className="partner-name"><p>{partner.name}</p></div>
                 <div className="ceo-phone"><p>Директор</p>{partner.phone}</div>

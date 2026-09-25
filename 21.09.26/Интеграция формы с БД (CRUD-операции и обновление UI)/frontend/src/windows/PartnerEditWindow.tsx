@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import './PartnerEditWindow.css'
-import type { Partner } from '../types'
+import type { PartnerDto } from '../types'
 import logo from '../assets/fakeLogo.png'
 
 // Список типов партнера зафиксирован в ТЗ, поэтому колонки ComboBox заданы константой
@@ -14,48 +14,110 @@ export interface PartnerFormData {
     director: string
     phone: string
     email: string
-    discount: number
 }
 
 interface PartnerEditWindowProps {
-    initialPartner?: Partner | null
-    onSave: (data: PartnerFormData) => void
+    partnerId: number | null
+    onSave: (data: PartnerFormData) => Promise<void>
     onBack: () => void
 }
 
-function PartnerEditWindow({ initialPartner, onSave, onBack }: PartnerEditWindowProps) {
-    const isEditing = Boolean(initialPartner)
+function PartnerEditWindow({ partnerId, onSave, onBack }: PartnerEditWindowProps) {
+    const isEditing = partnerId !== null
 
-    // При редактировании форма инициализируется данными партнера,
-    // при добавлении (initialPartner = null) начинается с пустыми значениями
-    const [name, setName] = useState(initialPartner?.name ?? '')
-    const [partnerType, setPartnerType] = useState(initialPartner?.partnerType ?? '')
-    const [rating, setRating] = useState(initialPartner?.rating.toString() ?? '')
-    const [address, setAddress] = useState(initialPartner?.address ?? '')
-    const [director, setDirector] = useState(initialPartner?.director ?? '')
-    const [phone, setPhone] = useState(initialPartner?.phone ?? '')
-    const [email, setEmail] = useState(initialPartner?.email ?? '')
-    const [discount, setDiscount] = useState(initialPartner?.discount.toString() ?? '')
+    const [isLoading, setIsLoading] = useState(isEditing)
+    const [isSaving, setIsSaving] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
+    const [name, setName] = useState('')
+    const [partnerType, setPartnerType] = useState('')
+    const [rating, setRating] = useState('')
+    const [address, setAddress] = useState('')
+    const [director, setDirector] = useState('')
+    const [phone, setPhone] = useState('')
+    const [email, setEmail] = useState('')
+    const [discountFromDb, setDiscountFromDb] = useState(0)
+
+    // В режиме редактирования карточка подгружает актуальные данные из БД;
+    // в режиме добавления (partnerId = null) форма начинает пустой
     useEffect(() => {
         document.title = isEditing
             ? 'CRM: Карточка партнера [Редактирование]'
             : 'CRM: Карточка партнера [Добавление]'
-    }, [isEditing])
 
-    function handleSubmit(event: FormEvent) {
+        if (!isEditing) {
+            return
+        }
+
+        let cancelled = false
+
+        fetch(`http://localhost:8000/api/partner/${partnerId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Ошибка сервера: ${response.status}`)
+                }
+                return response.json()
+            })
+            .then((data: PartnerDto) => {
+                if (cancelled) {
+                    return
+                }
+                setName(data.company_name ?? '')
+                setPartnerType(data.partner_type ?? '')
+                setRating(data.rating?.toString() ?? '')
+                setAddress(data.address ?? '')
+                setDirector(data.director ?? '')
+                setPhone(data.phone ?? '')
+                setEmail(data.email ?? '')
+                setDiscountFromDb(Number(data.discountPercentage) || 0)
+            })
+            .catch(err => {
+                if (!cancelled) {
+                    setError(err.message)
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setIsLoading(false)
+                }
+            })
+
+        return () => {
+            cancelled = true
+        }
+    }, [partnerId, isEditing])
+
+    async function handleSubmit(event: FormEvent) {
         event.preventDefault()
-        onSave({
-            name: name.trim(),
-            partnerType,
-            // Рейтинг приводится к неотрицательному целому числу
-            rating: Math.max(0, Math.trunc(Number(rating) || 0)),
-            address: address.trim(),
-            director: director.trim(),
-            phone: phone.trim(),
-            email: email.trim(),
-            discount: Number(discount) || 0,
-        })
+        setIsSaving(true)
+        setError(null)
+        try {
+            await onSave({
+                name: name.trim(),
+                partnerType,
+                // Рейтинг приводится к неотрицательному целому числу
+                rating: Math.max(0, Math.trunc(Number(rating) || 0)),
+                address: address.trim(),
+                director: director.trim(),
+                phone: phone.trim(),
+                email: email.trim(),
+            })
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Не удалось сохранить партнера')
+            setIsSaving(false)
+        }
+    }
+
+    if (isLoading) {
+        return (
+            <div className="partner-edit-window">
+                <div className="app-logo">
+                    <img src={logo} alt="Логотип"/>
+                </div>
+                <div className="main-title"><h1>CRM: Карточка партнера [Редактирование]</h1></div>
+                <div className="form-loading">Загружаем данные партнера...</div>
+            </div>
+        )
     }
 
     return (
@@ -64,8 +126,14 @@ function PartnerEditWindow({ initialPartner, onSave, onBack }: PartnerEditWindow
                 <img src={logo} alt="Логотип"/>
             </div>
             <div className="main-title">
-                <h1>{isEditing ? 'CRM: Карточка партнера' : 'CRM: Добавить партнера'}</h1>
+                <h1>{isEditing ? 'CRM: Карточка партнера [Редактирование]' : 'CRM: Карточка партнера [Добавление]'}</h1>
             </div>
+            {error && <div className="form-error">{error}</div>}
+            {isEditing && (
+                <div className="discount-info">
+                    Текущая скидка по объему продаж: {discountFromDb}%
+                </div>
+            )}
             <form className="partner-form" onSubmit={handleSubmit}>
                 <label className="form-field">
                     Наименование
@@ -108,14 +176,9 @@ function PartnerEditWindow({ initialPartner, onSave, onBack }: PartnerEditWindow
                            placeholder="example@company.ru"/>
                     <span className="form-hint">Формат: name@domain.ru</span>
                 </label>
-                <label className="form-field">
-                    Скидка, %
-                    <input type="number" min="0" max="100" value={discount}
-                           onChange={e => setDiscount(e.target.value)}/>
-                </label>
                 <div className="form-actions">
-                    <button type="submit" className="save-button">
-                        {isEditing ? 'Сохранить' : 'Добавить'}
+                    <button type="submit" className="save-button" disabled={isSaving}>
+                        {isSaving ? 'Сохранение...' : (isEditing ? 'Сохранить' : 'Добавить')}
                     </button>
                     <button type="button" className="cancel-button" onClick={onBack}>
                         Назад

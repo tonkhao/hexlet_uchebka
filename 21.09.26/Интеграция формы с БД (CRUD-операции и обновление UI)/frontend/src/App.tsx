@@ -3,68 +3,58 @@ import './App.css'
 import MainWindow from './windows/MainWindow'
 import PartnerEditWindow, { type PartnerFormData } from './windows/PartnerEditWindow'
 import logo from './assets/fakeLogo.png'
-import type { Partner } from './types'
+import type { Partner, PartnerDto } from './types'
 
-interface PartnerDto {
-    partner_id: number
-    company_name: string
-    partner_type?: string
-    phone: string
-    rating: number
-    address?: string
-    director_name?: string
-    email?: string
-    discountPercentage: number
+const API_BASE = 'http://localhost:8000/api'
+
+function toPartner(dto: PartnerDto): Partner {
+    return {
+        id: Number(dto.partner_id),
+        name: dto.company_name,
+        partnerType: dto.partner_type ?? '',
+        rating: Number(dto.rating) || 0,
+        address: dto.address ?? '',
+        director: dto.director ?? '',
+        phone: dto.phone ?? '',
+        email: dto.email ?? '',
+        discount: Number(dto.discountPercentage) || 0,
+    }
 }
 
 type WindowType = 'main' | 'edit'
 
-function nextPartnerId(partners: Partner[]) {
-    return partners.reduce((maxId, partner) => Math.max(maxId, partner.id), 0) + 1
-}
-
-// Партнер, выбранный на главной форме, передается в окно редактирования,
-// поэтому при сохранении обновляется нужный элемент списка по его id
 function App() {
     const [partners, setPartners] = useState<Partner[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [currentWindow, setCurrentWindow] = useState<WindowType>('main')
-    // Партнер, переданный в окно редактирования; null означает режим добавления
-    const [editingPartner, setEditingPartner] = useState<Partner | null>(null)
+    // null — режим добавления, иначе id партнера для подгрузки карточки из БД
+    const [editingPartnerId, setEditingPartnerId] = useState<number | null>(null)
 
-    useEffect(() => {
-        fetch('http://localhost:8000/api/partners')
+    function reloadPartners() {
+        return fetch(`${API_BASE}/partners`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Ошибка сервера: ${response.status}`)
                 }
                 return response.json()
             })
-            .then((data: PartnerDto[]) => {
-                setPartners(data.map(p => ({
-                    id: Number(p.partner_id),
-                    name: p.company_name,
-                    partnerType: p.partner_type ?? '',
-                    rating: Number(p.rating) || 0,
-                    address: p.address ?? '',
-                    director: p.director_name ?? '',
-                    phone: p.phone ?? '',
-                    email: p.email ?? '',
-                    discount: Number(p.discountPercentage) || 0,
-                })))
-            })
+            .then((data: PartnerDto[]) => setPartners(data.map(toPartner)))
+    }
+
+    useEffect(() => {
+        reloadPartners()
             .catch(err => setError(err.message))
             .finally(() => setLoading(false))
     }, [])
 
     function openAddPartner() {
-        setEditingPartner(null)
+        setEditingPartnerId(null)
         setCurrentWindow('edit')
     }
 
     function openEditPartner(partner: Partner) {
-        setEditingPartner(partner)
+        setEditingPartnerId(partner.id)
         setCurrentWindow('edit')
     }
 
@@ -72,18 +62,41 @@ function App() {
         setCurrentWindow('main')
     }
 
-    function handleSave(data: PartnerFormData) {
-        if (editingPartner) {
-            setPartners(prev => prev.map(p => p.id === editingPartner.id ? { ...p, ...data } : p))
-        } else {
-            setPartners(prev => [...prev, { id: nextPartnerId(prev), ...data }])
+    async function handleSave(data: PartnerFormData) {
+        const body = {
+            company_name: data.name,
+            partner_type: data.partnerType,
+            rating: data.rating,
+            legal_address: data.address,
+            director_name: data.director,
+            contact_email: data.email,
+            phone: data.phone,
         }
+
+        const url = editingPartnerId === null
+            ? `${API_BASE}/partners`
+            : `${API_BASE}/partners/${editingPartnerId}`
+        const method = editingPartnerId === null ? 'POST' : 'PUT'
+
+        const response = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        })
+
+        if (!response.ok) {
+            const payload = await response.json().catch(() => null)
+            throw new Error(payload?.error ?? `Ошибка сервера: ${response.status}`)
+        }
+
+        // После записи в БД перечитываем список, чтобы главная форма была актуальной
+        await reloadPartners()
         goBack()
     }
 
     if (currentWindow === 'edit') {
         return (
-            <PartnerEditWindow initialPartner={editingPartner} onSave={handleSave} onBack={goBack}/>
+            <PartnerEditWindow partnerId={editingPartnerId} onSave={handleSave} onBack={goBack}/>
         )
     }
 
