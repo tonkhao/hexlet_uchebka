@@ -1,0 +1,27 @@
+.main-window {
+    text-align: left;
+}
+
+.toolbar {
+    margin: 0 50px 30px;
+}
+
+.add-partner-button {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background-color: #2ecc71;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.add-partner-button:hover {
+    background-color: #27ae60;
+}
+
+.partners-list {
+    margin: 0 50px;
+}
