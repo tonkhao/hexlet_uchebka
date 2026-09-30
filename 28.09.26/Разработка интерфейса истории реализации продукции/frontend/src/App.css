@@ -1,0 +1,13 @@
+.app-logo {
+    text-align: left;
+    padding: 16px 24px;
+}
+
+.app-logo img {
+    width: 100px;
+    height: auto;
+}
+
+.main-title {
+    margin: 50px;
+}
