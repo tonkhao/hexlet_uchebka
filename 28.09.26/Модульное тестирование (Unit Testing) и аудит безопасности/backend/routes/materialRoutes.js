@@ -3,6 +3,7 @@ import {
     calculateMaterialRequirementDetailed,
     materialReferenceRepository,
 } from '../services/materialService.js';
+import { logger } from '../config/logger.js';
 
 const router = express.Router();
 
@@ -30,7 +31,7 @@ router.get('/materials/references', async (req, res) => {
 
         res.json({ productTypes, materialTypes });
     } catch (error) {
-        console.error(error);
+        logger.error('GET /api/materials/references', error);
         res.status(500).json({ error: 'Ошибка сервера при загрузке справочников' });
     }
 });
@@ -51,6 +52,7 @@ router.post('/materials/calculate', async (req, res) => {
         const calculation = await calculateMaterialRequirementDetailed(input);
 
         if (!calculation.ok) {
+            logger.warning('POST /api/materials/calculate', `Расчет не выполнен: ${calculation.error}`);
             return res.status(400).json({
                 result: calculation.result,
                 error: calculation.error,
@@ -59,7 +61,7 @@ router.post('/materials/calculate', async (req, res) => {
 
         res.json(calculation);
     } catch (error) {
-        console.error(error);
+        logger.error('POST /api/materials/calculate', error);
         res.status(500).json({ error: 'Ошибка сервера при расчете материалов' });
     }
 });

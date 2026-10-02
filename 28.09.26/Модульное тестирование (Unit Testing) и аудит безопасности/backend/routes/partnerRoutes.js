@@ -6,14 +6,16 @@ import {
     getPartnersWithDiscount,
     updatePartner,
 } from '../services/parnerService.js';
+import { logger } from '../config/logger.js';
 
 const router = express.Router();
 
-function handleError(res, error) {
+function handleError(res, error, context) {
     if (error.status === 400) {
+        logger.warning(context, error.message);
         return res.status(400).json({ error: error.message });
     }
-    console.error(error);
+    logger.error(context, error);
     return res.status(500).json({ error: 'Ошибка сервера при работе с БД' });
 }
 
@@ -22,7 +24,7 @@ router.get('/partners', async (req, res) => {
         const partners = await getPartnersWithDiscount();
         res.json(partners);
     } catch (error) {
-        handleError(res, error);
+        handleError(res, error, 'GET /api/partners');
     }
 });
 
@@ -37,7 +39,7 @@ router.get('/partner/:id', async (req, res) => {
 
         res.json(partner);
     } catch (error) {
-        handleError(res, error);
+        handleError(res, error, 'GET /api/partner/:id');
     }
 });
 
@@ -64,7 +66,7 @@ router.get('/partners/:id/sales-history', async (req, res) => {
             history,
         });
     } catch (error) {
-        handleError(res, error);
+        handleError(res, error, 'GET /api/partners/:id/sales-history');
     }
 });
 
@@ -73,7 +75,7 @@ router.post('/partners', async (req, res) => {
         const partner = await addPartner(req.body);
         res.status(201).json(partner);
     } catch (error) {
-        handleError(res, error);
+        handleError(res, error, 'POST /api/partners');
     }
 });
 
@@ -88,7 +90,7 @@ router.put('/partners/:id', async (req, res) => {
 
         res.json(partner);
     } catch (error) {
-        handleError(res, error);
+        handleError(res, error, 'PUT /api/partners/:id');
     }
 });
 
