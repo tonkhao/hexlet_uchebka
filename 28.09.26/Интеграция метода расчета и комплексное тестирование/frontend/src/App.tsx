@@ -3,6 +3,7 @@ import './App.css'
 import MainWindow from './windows/MainWindow'
 import PartnerEditWindow, { type PartnerFormData } from './windows/PartnerEditWindow'
 import PartnerHistoryWindow from './windows/PartnerHistoryWindow'
+import MaterialCalculatorWindow from './windows/MaterialCalculatorWindow'
 import logo from './assets/fakeLogo.png'
 import type { Partner, PartnerDto } from './types'
 

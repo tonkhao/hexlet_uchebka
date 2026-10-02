@@ -1,5 +1,8 @@
 import express from 'express';
-import { calculateMaterialRequirementDetailed } from '../services/materialService.js';
+import {
+    calculateMaterialRequirementDetailed,
+    materialReferenceRepository,
+} from '../services/materialService.js';
 
 const router = express.Router();
 
@@ -13,6 +16,24 @@ function toNumberOrNull(value) {
     const parsed = Number(value);
     return Number.isNaN(parsed) ? null : parsed;
 }
+
+// GET /api/materials/references
+// Справочники типов продукции и материала для выпадающих списков формы.
+// Идентификаторы приходят из БД, поэтому менеджер не может ввести
+// несуществующий тип вручную.
+router.get('/materials/references', async (req, res) => {
+    try {
+        const [productTypes, materialTypes] = await Promise.all([
+            materialReferenceRepository.getProductTypes(),
+            materialReferenceRepository.getMaterialTypes(),
+        ]);
+
+        res.json({ productTypes, materialTypes });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка сервера при загрузке справочников' });
+    }
+});
 
 // POST /api/materials/calculate
 // Тело: { product_type_id, material_type_id, quantity, param_1, param_2 }

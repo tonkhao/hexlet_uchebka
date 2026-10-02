@@ -37,6 +37,18 @@ const MATERIAL_DEFECT_QUERY = `
     SELECT defect_percent FROM public.material_types WHERE material_type_id = $1;
 `;
 
+const PRODUCT_TYPES_QUERY = `
+    SELECT product_type_id, type_name, coefficient
+    FROM public.product_types
+    ORDER BY type_name;
+`;
+
+const MATERIAL_TYPES_QUERY = `
+    SELECT material_type_id, type_name, defect_percent
+    FROM public.material_types
+    ORDER BY type_name;
+`;
+
 /**
  * Реализация доступа к справочникам БД.
  * Вынесена отдельно, чтобы в тестах можно было подставить мок-объект
@@ -60,6 +72,26 @@ export const materialReferenceRepository = {
     async getMaterialDefectPercent(materialTypeId) {
         const result = await pool.query(MATERIAL_DEFECT_QUERY, [materialTypeId]);
         return result.rows[0]?.defect_percent ?? null;
+    },
+
+    // Списки справочников нужны форме калькулятора, чтобы менеджер
+    // выбирал тип из выпадающего списка, а не вводил идентификатор вручную
+    async getProductTypes() {
+        const result = await pool.query(PRODUCT_TYPES_QUERY);
+        return result.rows.map(row => ({
+            product_type_id: row.product_type_id,
+            type_name: row.type_name,
+            coefficient: Number(row.coefficient),
+        }));
+    },
+
+    async getMaterialTypes() {
+        const result = await pool.query(MATERIAL_TYPES_QUERY);
+        return result.rows.map(row => ({
+            material_type_id: row.material_type_id,
+            type_name: row.type_name,
+            defect_percent: Number(row.defect_percent),
+        }));
     },
 };
 
