@@ -11,6 +11,7 @@ interface MainWindowProps {
     onSelectPartner: (partner: Partner) => void
     onEditPartner: (partner: Partner) => void
     onShowHistory: (partner: Partner) => void
+    onOpenCalculator: () => void
 }
 
 function MainWindow({
@@ -20,6 +21,7 @@ function MainWindow({
     onSelectPartner,
     onEditPartner,
     onShowHistory,
+    onOpenCalculator,
 }: MainWindowProps) {
     useEffect(() => {
         document.title = 'CRM: Реестр партнеров'
@@ -45,6 +47,9 @@ function MainWindow({
                     onClick={() => selectedPartner && onShowHistory(selectedPartner)}
                 >
                     История продаж
+                </button>
+                <button type="button" className="calculator-button" onClick={onOpenCalculator}>
+                    Калькулятор материалов
                 </button>
             </div>
             {selectedPartner && (

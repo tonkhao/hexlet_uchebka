@@ -23,7 +23,7 @@ function toPartner(dto: PartnerDto): Partner {
     }
 }
 
-type WindowType = 'main' | 'edit' | 'history'
+type WindowType = 'main' | 'edit' | 'history' | 'calculator'
 
 function App() {
     const [partners, setPartners] = useState<Partner[]>([])
@@ -74,6 +74,11 @@ function App() {
         setCurrentWindow('history')
     }
 
+    // Калькулятор не привязан к партнеру: он считает сырье на партию изделий
+    function openMaterialCalculator() {
+        setCurrentWindow('calculator')
+    }
+
     async function handleSave(data: PartnerFormData) {
         const body = {
             company_name: data.name,
@@ -122,6 +127,12 @@ function App() {
         )
     }
 
+    if (currentWindow === 'calculator') {
+        return (
+            <MaterialCalculatorWindow onBack={goBack}/>
+        )
+    }
+
     if (loading) {
         return (
             <div className="app-logo">
@@ -150,6 +161,7 @@ function App() {
             onSelectPartner={partner => setSelectedPartnerId(partner.id)}
             onEditPartner={openEditPartner}
             onShowHistory={openPartnerHistory}
+            onOpenCalculator={openMaterialCalculator}
         />
     )
 }
