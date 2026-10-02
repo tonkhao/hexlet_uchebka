@@ -1,0 +1,73 @@
+.main-window {
+    text-align: left;
+}
+
+.toolbar {
+    display: flex;
+    gap: 12px;
+    margin: 0 50px 12px;
+}
+
+.add-partner-button {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background-color: #2ecc71;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.add-partner-button:hover {
+    background-color: #27ae60;
+}
+
+.history-sales-button {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background-color: #aa3bff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.history-sales-button:hover:not(:disabled) {
+    background-color: #8e2bd8;
+}
+
+.history-sales-button:disabled {
+    color: #999;
+    background-color: #e5e4e7;
+    cursor: not-allowed;
+}
+
+.calculator-button {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background-color: #2f80ed;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.calculator-button:hover {
+    background-color: #2569c4;
+}
+
+.selected-partner-hint {
+    margin: 0 50px 24px;
+    font-size: 14px;
+    color: #888;
+}
+
+.partners-list {
+    margin: 0 50px;
+}
